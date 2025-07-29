@@ -1,0 +1,151 @@
+/* Modern UI Enhancements */
+
+/* Modern select inputs */
+.selectize-control.single .selectize-input {
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  padding: 8px 12px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.selectize-control.single .selectize-input:hover {
+  border-color: var(--symrise-red);
+}
+
+.selectize-control.single .selectize-input.focus {
+  border-color: var(--symrise-red);
+  box-shadow: 0 0 0 0.2rem rgba(197, 23, 24, 0.15);
+}
+
+/* Modern numeric inputs */
+.form-control {
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+  padding: 8px 12px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.form-control:hover {
+  border-color: var(--symrise-red);
+}
+
+/* Modern boxes */
+.card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.card-header {
+  background-color: transparent;
+  border-bottom: 2px solid #f0f0f0;
+  padding: 1.25rem;
+}
+
+.card-title {
+  font-weight: 600;
+  color: var(--symrise-text);
+  font-size: 1.1rem;
+}
+
+/* Modern buttons */
+.btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: none;
+  padding: 8px 20px;
+}
+
+.btn-primary {
+  background-color: var(--symrise-red);
+  box-shadow: 0 2px 4px rgba(197, 23, 24, 0.2);
+}
+
+.btn-primary:hover {
+  background-color: #a01415;
+  box-shadow: 0 4px 8px rgba(197, 23, 24, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Design header zone */
+.design-header-zone {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+/* Reduce excessive spacing */
+.content-wrapper {
+  padding-top: 1rem !important;
+}
+
+.card-body {
+  padding: 1.25rem;
+}
+
+/* Labels styling */
+label {
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+/* Alert improvements */
+.alert {
+  border-radius: 8px;
+  border: none;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+
+.alert-primary {
+  background-color: rgba(197, 23, 24, 0.08);
+  color: var(--symrise-red);
+}
+
+/* Checkbox styling */
+.checkbox label {
+  font-weight: 400;
+}
+
+input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+/* Remove box tools background */
+.btn-tool {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+/* Dark mode adjustments for modern UI */
+.dark-mode .design-header-zone {
+  background: linear-gradient(135deg, var(--symrise-dark-sidebar) 0%, #2a2a2a 100%);
+  border-color: #444;
+}
+
+.dark-mode .card {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.dark-mode .card:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.dark-mode .selectize-control.single .selectize-input {
+  background-color: var(--symrise-dark-bg);
+  border-color: #444;
+  color: var(--symrise-dark-text);
+}
+
+.dark-mode .btn-primary {
+  box-shadow: 0 2px 4px rgba(197, 23, 24, 0.3);
+}

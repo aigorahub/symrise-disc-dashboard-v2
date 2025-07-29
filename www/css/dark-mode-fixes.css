@@ -1,0 +1,117 @@
+/* Additional Dark Mode Fixes for BS4Dash */
+
+/* Force dark background on light-styled components in dark mode */
+.dark-mode .navbar-white,
+.dark-mode .navbar-light {
+  background-color: var(--symrise-dark-bg) !important;
+}
+
+/* Fix control bar (right sidebar) if present */
+.dark-mode .control-sidebar,
+.dark-mode .control-sidebar::before {
+  background-color: var(--symrise-dark-sidebar) !important;
+  color: var(--symrise-dark-text) !important;
+}
+
+/* Fix dropdown menus in dark mode */
+.dark-mode .dropdown-menu {
+  background-color: var(--symrise-dark-sidebar) !important;
+  border-color: #444 !important;
+}
+
+.dark-mode .dropdown-item {
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .dropdown-item:hover {
+  background-color: rgba(197, 23, 24, 0.1) !important;
+  color: var(--symrise-red) !important;
+}
+
+/* Fix breadcrumbs in dark mode */
+.dark-mode .breadcrumb {
+  background-color: transparent !important;
+}
+
+.dark-mode .breadcrumb-item {
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .breadcrumb-item.active {
+  color: var(--symrise-gray) !important;
+}
+
+/* Fix info boxes and value boxes */
+.dark-mode .info-box,
+.dark-mode .small-box {
+  background-color: var(--symrise-dark-sidebar) !important;
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .info-box-icon {
+  background-color: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Fix nav pills */
+.dark-mode .nav-pills .nav-link {
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .nav-pills .nav-link.active {
+  background-color: var(--symrise-red) !important;
+  color: white !important;
+}
+
+/* Fix modal dialogs */
+.dark-mode .modal-content {
+  background-color: var(--symrise-dark-sidebar) !important;
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .modal-header {
+  border-bottom-color: #444 !important;
+}
+
+.dark-mode .modal-footer {
+  border-top-color: #444 !important;
+}
+
+/* Fix close buttons */
+.dark-mode .close {
+  color: var(--symrise-dark-text) !important;
+  opacity: 0.8;
+}
+
+/* Fix box tools (collapse/remove buttons) */
+.dark-mode .btn-tool {
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .btn-tool:hover {
+  color: var(--symrise-red) !important;
+}
+
+/* Ensure logo area is properly styled */
+.dark-mode .brand-link {
+  background-color: var(--symrise-dark-bg) !important;
+  color: var(--symrise-red) !important;
+  border-bottom: 1px solid #444 !important;
+}
+
+/* Fix user panel if present */
+.dark-mode .user-panel {
+  border-bottom-color: #444 !important;
+}
+
+.dark-mode .user-panel .info {
+  color: var(--symrise-dark-text) !important;
+}
+
+/* Important: Override any inline styles that might be set by BS4Dash */
+.dark-mode .main-header[style*="background"] {
+  background-color: var(--symrise-dark-bg) !important;
+}
+
+.dark-mode .main-sidebar[style*="background"] {
+  background-color: var(--symrise-dark-sidebar) !important;
+}

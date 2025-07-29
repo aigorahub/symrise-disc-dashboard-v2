@@ -1,0 +1,291 @@
+/* Symrise Custom Styling */
+
+:root {
+  --symrise-red: #c51718;
+  --symrise-gray: #696969;
+  --symrise-light-gray: #f5f5f5;
+  --symrise-text: #333333;
+  --symrise-dark-bg: #1a1a1a;
+  --symrise-dark-sidebar: #222222;
+  --symrise-dark-text: #e0e0e0;
+}
+
+/* Override BS4Dash defaults */
+.main-header {
+  background-color: white !important;
+  border-bottom: 2px solid var(--symrise-red);
+}
+
+.main-header .navbar {
+  background-color: white !important;
+}
+
+.main-header .logo {
+  background-color: white !important;
+  color: var(--symrise-red) !important;
+  border-right: 1px solid #dee2e6;
+}
+
+/* Sidebar styling */
+.main-sidebar {
+  background-color: var(--symrise-light-gray) !important;
+}
+
+.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active {
+  background-color: var(--symrise-red) !important;
+  color: white !important;
+}
+
+.sidebar-light-primary .nav-sidebar > .nav-item > .nav-link.active {
+  background-color: var(--symrise-red) !important;
+  color: white !important;
+}
+
+.nav-sidebar .nav-link:hover {
+  color: var(--symrise-red) !important;
+}
+
+/* Page headers */
+.page-header {
+  color: var(--symrise-red);
+  font-weight: 600;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--symrise-red);
+  padding-bottom: 10px;
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--symrise-red) !important;
+  border-color: var(--symrise-red) !important;
+}
+
+.btn-primary:hover {
+  background-color: #a01415 !important;
+  border-color: #a01415 !important;
+}
+
+/* Cards and boxes */
+.card-primary:not(.card-outline) > .card-header {
+  background-color: var(--symrise-red) !important;
+}
+
+.card-primary.card-outline {
+  border-top-color: var(--symrise-red) !important;
+}
+
+/* Tables */
+.table thead th {
+  background-color: var(--symrise-light-gray);
+  color: var(--symrise-text);
+  font-weight: 600;
+}
+
+/* Forms */
+.form-control:focus {
+  border-color: var(--symrise-red) !important;
+  box-shadow: 0 0 0 0.2rem rgba(197, 23, 24, 0.25) !important;
+}
+
+/* Footer */
+.main-footer {
+  background-color: var(--symrise-light-gray);
+  color: var(--symrise-gray);
+  border-top: 1px solid #dee2e6;
+}
+
+/* Loading indicator */
+.progress-bar {
+  background-color: var(--symrise-red) !important;
+}
+
+/* Custom box styling */
+.symrise-box {
+  border-top: 3px solid var(--symrise-red);
+  box-shadow: 0 1px 3px rgba(0,0,0,.12), 0 1px 2px rgba(0,0,0,.24);
+  transition: all 0.3s cubic-bezier(.25,.8,.25,1);
+}
+
+.symrise-box:hover {
+  box-shadow: 0 14px 28px rgba(0,0,0,.25), 0 10px 10px rgba(0,0,0,.22);
+}
+
+/* Tabs */
+.nav-tabs .nav-link.active {
+  color: var(--symrise-red) !important;
+  border-top-color: var(--symrise-red) !important;
+}
+
+/* Alerts */
+.alert-primary {
+  background-color: rgba(197, 23, 24, 0.1) !important;
+  border-color: var(--symrise-red) !important;
+  color: var(--symrise-red) !important;
+}
+
+/* Dark Mode Support */
+.dark-mode .main-header {
+  background-color: var(--symrise-dark-bg) !important;
+  border-bottom-color: var(--symrise-red) !important;
+}
+
+.dark-mode .main-header .navbar {
+  background-color: var(--symrise-dark-bg) !important;
+}
+
+.dark-mode .main-header .logo {
+  background-color: var(--symrise-dark-bg) !important;
+  color: var(--symrise-red) !important;
+  border-right-color: #444 !important;
+}
+
+.dark-mode .navbar-dark .navbar-nav .nav-link {
+  color: var(--symrise-dark-text) !important;
+}
+
+/* Dark mode sidebar */
+.dark-mode .main-sidebar,
+.dark-mode .main-sidebar .sidebar {
+  background-color: var(--symrise-dark-sidebar) !important;
+}
+
+.dark-mode .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link {
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link:hover {
+  background-color: rgba(197, 23, 24, 0.1) !important;
+  color: var(--symrise-red) !important;
+}
+
+.dark-mode .sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active {
+  background-color: var(--symrise-red) !important;
+  color: white !important;
+}
+
+/* Dark mode content */
+.dark-mode .content-wrapper {
+  background-color: var(--symrise-dark-bg) !important;
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .card {
+  background-color: var(--symrise-dark-sidebar) !important;
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .card-header {
+  background-color: rgba(0, 0, 0, 0.2) !important;
+  border-bottom-color: #444 !important;
+}
+
+.dark-mode .page-header {
+  color: var(--symrise-red) !important;
+  border-bottom-color: var(--symrise-red) !important;
+}
+
+/* Dark mode forms */
+.dark-mode .form-control {
+  background-color: var(--symrise-dark-bg) !important;
+  border-color: #444 !important;
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .form-control:focus {
+  background-color: var(--symrise-dark-bg) !important;
+  border-color: var(--symrise-red) !important;
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .selectize-input {
+  background-color: var(--symrise-dark-bg) !important;
+  border-color: #444 !important;
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .selectize-dropdown {
+  background-color: var(--symrise-dark-sidebar) !important;
+  border-color: #444 !important;
+}
+
+.dark-mode .selectize-dropdown .option {
+  color: var(--symrise-dark-text) !important;
+}
+
+/* Dark mode tables */
+.dark-mode .table {
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .table thead th {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+}
+
+/* Dark mode footer */
+.dark-mode .main-footer {
+  background-color: var(--symrise-dark-sidebar) !important;
+  color: var(--symrise-gray) !important;
+  border-top-color: #444 !important;
+}
+
+/* Dark mode buttons */
+.dark-mode .btn-default {
+  background-color: var(--symrise-dark-sidebar) !important;
+  border-color: #444 !important;
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .btn-default:hover {
+  background-color: #333 !important;
+  border-color: #555 !important;
+}
+
+/* Dark mode alerts */
+.dark-mode .alert-info {
+  background-color: rgba(23, 162, 184, 0.1) !important;
+  border-color: #17a2b8 !important;
+  color: #17a2b8 !important;
+}
+
+.dark-mode .alert-success {
+  background-color: rgba(40, 167, 69, 0.1) !important;
+  border-color: #28a745 !important;
+  color: #28a745 !important;
+}
+
+/* Fix navbar light issue in dark mode */
+.dark-mode .navbar-light {
+  background-color: var(--symrise-dark-bg) !important;
+}
+
+.dark-mode .navbar-light .navbar-nav .nav-link {
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .navbar-light .navbar-brand {
+  color: var(--symrise-red) !important;
+}
+
+/* Ensure sidebar has proper dark styling */
+.dark-mode .sidebar-light-primary {
+  background-color: var(--symrise-dark-sidebar) !important;
+}
+
+.dark-mode .sidebar-light-primary .nav-sidebar > .nav-item > .nav-link {
+  color: var(--symrise-dark-text) !important;
+}
+
+.dark-mode .sidebar-light-primary .nav-sidebar > .nav-item > .nav-link:hover {
+  background-color: rgba(197, 23, 24, 0.1) !important;
+  color: var(--symrise-red) !important;
+}
+
+.dark-mode .sidebar-light-primary .nav-sidebar > .nav-item > .nav-link.active {
+  background-color: var(--symrise-red) !important;
+  color: white !important;
+}
