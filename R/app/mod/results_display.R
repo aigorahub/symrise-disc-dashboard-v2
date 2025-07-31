@@ -38,6 +38,8 @@ server <- function(id, analysis_results) {
       req(analysis_results())
       results <- analysis_results()
       
+
+      
       # Check for errors
       if (!is.null(results$error) && results$error) {
         return(
@@ -49,7 +51,10 @@ server <- function(id, analysis_results) {
         )
       }
       
-      if (results$test_type == "sod") {
+      # Safe test_type check
+      test_type <- if(!is.null(results$test_type)) results$test_type else "unknown"
+      
+      if (test_type == "sod") {
         # Display SoD results
         tagList(
           h4("Size of Difference Results"),
@@ -82,7 +87,7 @@ server <- function(id, analysis_results) {
             )
           )
         )
-      } else if (!is.null(results$is_double) && results$is_double) {
+      } else if (!is.null(results$is_double) && isTRUE(results$is_double)) {
         # Display double tetrad results
         tagList(
           h4("Double Tetrad Results"),
@@ -103,8 +108,8 @@ server <- function(id, analysis_results) {
                 tags$p(
                   "Result: ",
                   tags$strong(
-                    if (results$test1_results$is_significant) "Significant" else "Not significant",
-                    style = paste0("color: ", if (results$test1_results$is_significant) "green" else "gray")
+                    if (!is.null(results$test1_results) && !is.null(results$test1_results$is_significant) && results$test1_results$is_significant) "Significant" else "Not significant",
+                    style = paste0("color: ", if (!is.null(results$test1_results) && !is.null(results$test1_results$is_significant) && results$test1_results$is_significant) "green" else "gray")
                   )
                 )
               )
@@ -125,8 +130,8 @@ server <- function(id, analysis_results) {
                 tags$p(
                   "Result: ",
                   tags$strong(
-                    if (results$test2_results$is_significant) "Significant" else "Not significant",
-                    style = paste0("color: ", if (results$test2_results$is_significant) "green" else "gray")
+                    if (!is.null(results$test2_results) && !is.null(results$test2_results$is_significant) && results$test2_results$is_significant) "Significant" else "Not significant",
+                    style = paste0("color: ", if (!is.null(results$test2_results) && !is.null(results$test2_results$is_significant) && results$test2_results$is_significant) "green" else "gray")
                   )
                 )
               )
@@ -144,66 +149,75 @@ server <- function(id, analysis_results) {
                 class = "info-box",
                 tags$p(
                   tags$strong("Test type: "),
-                  switch(results$test_type,
+                  switch(test_type,
                     "triangle" = "Triangle",
                     "tetrad" = "Tetrad",
                     "duo_trio" = "Duo-Trio",
                     "two_afc" = "2-AFC",
-                    results$test_type
+                    test_type
                   )
                 ),
-                tags$p(tags$strong("Test objective: "), results$test_objective),
+                tags$p(tags$strong("Test objective: "), 
+                  if(!is.null(results$test_objective)) results$test_objective else "Unknown"),
                 tags$p(
                   tags$strong("Results: "),
-                  paste(results$num_correct, "correct out of", results$num_total)
+                  if(!is.null(results$num_correct) && !is.null(results$num_total)) {
+                    paste(results$num_correct, "correct out of", results$num_total)
+                  } else {
+                    "Results not available"
+                  }
                 ),
                 tags$p(
                   tags$strong("d': "),
-                  sprintf("%.2f", results$d_prime)
+                  if(!is.null(results$d_prime)) sprintf("%.2f", results$d_prime) else "Not calculated"
                 ),
                 tags$p(
                   tags$strong("90% CI: "),
-                  sprintf("[%.2f, %.2f]", results$ci_lower, results$ci_upper)
+                  if(!is.null(results$ci_lower) && !is.null(results$ci_upper)) {
+                    sprintf("[%.2f, %.2f]", results$ci_lower, results$ci_upper)
+                  } else {
+                    "Not available"
+                  }
                 ),
                 tags$p(
                   tags$strong("p-value: "),
-                  sprintf("%.3f", results$p_value)
+                  if(!is.null(results$p_value)) sprintf("%.3f", results$p_value) else "Not calculated"
                 ),
                 tags$p(
                   tags$strong("Power: "),
-                  sprintf("%.1f%%", results$power * 100)
+                  if(!is.null(results$power)) sprintf("%.1f%%", results$power * 100) else "Not calculated"
                 ),
                 tags$hr(),
                 tags$p(
                   "Result is ",
                   tags$strong(
-                    if (results$is_significant) "significant" else "not significant",
-                    style = paste0("color: ", if (results$is_significant) "green" else "gray")
+                    if (!is.null(results$is_significant) && results$is_significant) "significant" else "not significant",
+                    style = paste0("color: ", if (!is.null(results$is_significant) && results$is_significant) "green" else "gray")
                   ),
-                  sprintf(" at α = %.2f", results$alpha_level)
+                  if(!is.null(results$alpha_level)) sprintf(" at α = %.2f", results$alpha_level) else ""
                 ),
-                if (results$test_objective == "similarity") {
+                if (!is.null(results$test_objective) && results$test_objective == "similarity") {
                   tags$p(
                     "Meets similarity criterion: ",
                     tags$strong(
-                      if (results$meets_criteria) "Yes" else "No",
-                      style = paste0("color: ", if (results$meets_criteria) "green" else "red")
+                      if (!is.null(results$meets_criteria) && results$meets_criteria) "Yes" else "No",
+                      style = paste0("color: ", if (!is.null(results$meets_criteria) && results$meets_criteria) "green" else "red")
                     ),
-                    sprintf(" (CI upper bound < %.1f)", results$delta_threshold)
+                    if(!is.null(results$delta_threshold)) sprintf(" (CI upper bound < %.1f)", results$delta_threshold) else ""
                   )
                 } else {
                   tags$p(
                     "Products are ",
                     tags$strong(
-                      if (results$is_significant) "different" else "not detectably different"
+                      if (!is.null(results$is_significant) && results$is_significant) "different" else "not detectably different"
                     )
                   )
                 },
-                if (!is.na(results$overdispersion_p)) {
+                if (!is.null(results$overdispersion_p) && !is.na(results$overdispersion_p)) {
                   tags$p(
                     "Overdispersion ",
                     tags$strong(
-                      if (results$overdispersion_detected) "detected" else "not detected"
+                      if (!is.null(results$overdispersion_detected) && results$overdispersion_detected) "detected" else "not detected"
                     ),
                     sprintf(" (p = %.3f)", results$overdispersion_p)
                   )
@@ -393,7 +407,7 @@ server <- function(id, analysis_results) {
       
       if (!is.null(results$error) && results$error) return(NULL)
       if (is.null(results$panel_data)) return(NULL)
-      if (results$test_type == "sod") return(NULL)
+      if (!is.null(results$test_type) && results$test_type == "sod") return(NULL)
       
       p <- panel_performance$create_correct_answers_summary(
         results$panel_data,

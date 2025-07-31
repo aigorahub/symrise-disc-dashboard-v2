@@ -10,7 +10,10 @@ box::use(
 #' @export
 perform_discrimination_test <- function(data, test_type, test_objective, alpha_level, delta_threshold) {
   # Extract data
-  tidy_data <- data$data_sets[[1]]
+  tidy_data <- data$tidy_data
+  
+  # Debug info (can be removed later)
+  cat("Running analysis on", nrow(tidy_data), "rows of data\n")
   
   # Count correct and total responses
   if ("Correct" %in% names(tidy_data) && "Total" %in% names(tidy_data)) {

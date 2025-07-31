@@ -5,6 +5,7 @@ box::use(
   shiny[..., updateSelectInput],
   bs4Dash[...],
   readxl[read_excel],
+  dplyr[group_by, summarize, `%>%`],
   ../../proc/data_processing,
   ../../proc/data_import_functions
 )
@@ -164,6 +165,25 @@ server <- function(id) {
         # Add metadata
         processed_data$test_type <- input$test_type
         processed_data$test_objective <- input$test_objective
+        
+        # Determine if this is a double tetrad test
+        # Check if there are multiple replicates per panelist-product combination
+        if (input$test_type == "tetrad" && !is.null(processed_data$tidy_data)) {
+          # Count replicates per panelist-product combination
+          tidy_data <- processed_data$tidy_data
+          if ("Panelist" %in% names(tidy_data) && "Product" %in% names(tidy_data)) {
+            replicate_counts <- tidy_data %>%
+              group_by(Panelist, Product) %>%
+              summarize(n_reps = n(), .groups = "drop")
+            max_reps <- max(replicate_counts$n_reps, na.rm = TRUE)
+            processed_data$is_double <- max_reps > 1
+          } else {
+            processed_data$is_double <- FALSE
+          }
+        } else {
+          processed_data$is_double <- FALSE
+        }
+        
         processed_data
         
         # Update control product choices for SoD
@@ -185,7 +205,6 @@ server <- function(id) {
       }, error = function(e) {
         error_msg <- paste("Error reading file:", e$message)
         showNotification(error_msg, type = "warning", duration = 10)
-        cat("Upload error:", error_msg, "\n")
         NULL
       })
     })
@@ -198,14 +217,25 @@ server <- function(id) {
       tags$div(
         class = "alert alert-info",
         tags$h5("Data Summary"),
-        if (data$is_double) {
+        if (!is.null(data$is_double) && data$is_double) {
           tagList(
             tags$p(paste("Double Tetrad data loaded")),
             tags$p(paste("Test 1:", nrow(data$data_sets$test1), "rows")),
             tags$p(paste("Test 2:", nrow(data$data_sets$test2), "rows"))
           )
-        } else {
+        } else if (!is.null(data$tidy_data)) {
+          # For our processed data structure
+          tagList(
+            tags$p(paste("Rows:", nrow(data$tidy_data))),
+            if (!is.null(data$prod_labels)) {
+              tags$p(paste("Product labels:", paste(data$prod_labels, collapse = ", ")))
+            }
+          )
+        } else if (!is.null(data$data_sets)) {
+          # For other data structures
           tags$p(paste("Rows:", nrow(data$data_sets[[1]])))
+        } else {
+          tags$p("Data loaded successfully")
         },
         tags$p(paste("Test type:", input$test_type)),
         tags$p(paste("Test objective:", input$test_objective))

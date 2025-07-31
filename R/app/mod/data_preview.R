@@ -34,18 +34,35 @@ server <- function(id, data) {
       req(data())
       data_info <- data()
       
-      # Handle double tetrad - show first dataset with note
-      if (data_info$is_double) {
+      # Handle different data structures
+      if (!is.null(data_info$is_double) && data_info$is_double) {
+        # Double tetrad case
         display_data <- data_info$data_sets$test1
         
         showNotification(
           "Double Tetrad detected: Showing Test 1 data. Test 2 will be analyzed separately.",
-          type = "info",
+          type = "message",
           duration = 5
         )
-      } else {
-        # Single dataset
+      } else if (!is.null(data_info$tidy_data)) {
+        # Our processed data structure
+        display_data <- data_info$tidy_data
+      } else if (!is.null(data_info$data_sets) && length(data_info$data_sets) > 0) {
+        # Other data structure
         display_data <- data_info$data_sets[[1]]
+      } else {
+        # Fallback
+        showNotification("No data to preview", type = "warning", duration = 3)
+        return(NULL)
+      }
+      
+      # Create safe caption
+      caption_text <- if (!is.null(data_info$is_double) && data_info$is_double) {
+        "Double Tetrad Test 1 Data Preview"
+      } else if (!is.null(data_info$test_type)) {
+        paste(toupper(data_info$test_type), "Test Data Preview")
+      } else {
+        "Data Preview"
       }
       
       datatable(
@@ -56,11 +73,7 @@ server <- function(id, data) {
           dom = 'Bfrtip'
         ),
         class = 'table-striped table-bordered',
-        caption = if (data_info$is_double) {
-          "Double Tetrad Test 1 Data Preview"
-        } else {
-          paste(data_info$test_type, "Test Data Preview")
-        }
+        caption = caption_text
       )
     })
   })

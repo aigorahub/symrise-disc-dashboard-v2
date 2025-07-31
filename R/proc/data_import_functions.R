@@ -4,49 +4,127 @@
 box::use(
   dplyr[...],
   tidyr[...],
-  rio[import_list],
-  janitor[clean_names]
+  readxl[read_excel, excel_sheets]
 )
+
+# Simple function to clean column names without janitor
+clean_names_simple <- function(data) {
+  names(data) <- tolower(gsub("[^a-zA-Z0-9_]", "_", names(data)))
+  names(data) <- gsub("_{2,}", "_", names(data))  # Remove multiple underscores
+  names(data) <- gsub("^_|_$", "", names(data))   # Remove leading/trailing underscores
+  data
+}
+
+# Helper function to read Excel files with multiple sheets
+read_excel_allsheets <- function(file_path) {
+  file_ext <- tolower(tools::file_ext(file_path))
+  
+  if (file_ext %in% c("xlsx", "xls")) {
+    sheets <- excel_sheets(file_path)
+    data_list <- lapply(sheets, function(sheet) {
+      read_excel(file_path, sheet = sheet)
+    })
+    # Combine all sheets
+    do.call(rbind, data_list)
+  } else if (file_ext == "csv") {
+    read.csv(file_path, stringsAsFactors = FALSE)
+  } else {
+    stop("Unsupported file format")
+  }
+}
 
 #' Tidy triangle test data
 #' @export
 tidy_triangle <- function(file_path) {
-  data <- import_list(file_path, rbind = TRUE) %>%
-    clean_names() %>%
-    select(assessor, product, difference) %>%
-    group_by(assessor, product) %>%
+  data <- read_excel_allsheets(file_path) %>%
+    clean_names_simple()
+  
+  # Debug: show what columns actually exist (remove this later)
+  cat("Available columns:", paste(names(data), collapse = ", "), "\n")
+  
+  # Try to auto-detect column names
+  cols <- names(data)
+  assessor_col <- cols[grepl("assessor|panelist|judge|participant", cols, ignore.case = TRUE)]
+  product_col <- cols[grepl("product|sample|treatment", cols, ignore.case = TRUE)]
+  # For triangle, look for response columns (including tetrad since files might have mixed test data)
+  difference_col <- cols[grepl("difference|correct|response|answer|triangle|tetrad", cols, ignore.case = TRUE)]
+  
+  # Use detected columns or fall back to positional
+  if (length(assessor_col) == 0) assessor_col <- cols[1]
+  if (length(product_col) == 0) product_col <- cols[2]
+  if (length(difference_col) == 0) difference_col <- cols[3]
+  
+  # Take only the first detected column for each type
+  assessor_final <- assessor_col[1]
+  product_final <- product_col[1] 
+  difference_final <- difference_col[1]
+  
+  cat("Using columns:", assessor_final, "->", product_final, "->", difference_final, "\n")
+  
+  processed_data <- data %>%
+    select(Panelist = all_of(assessor_final), 
+           Product = all_of(product_final), 
+           difference = all_of(difference_final)) %>%
+    group_by(Panelist, Product) %>%
     summarize(Correct = sum(difference), Total = n(), .groups = "drop") %>%
     ungroup() %>%
-    rename(Panelist = assessor, Product = product) %>%
     mutate(Panelist = factor(Panelist))
   
-  prod_labels <- strsplit(unique(data$Product), split = "-", fixed = TRUE) [[1]]
+  # Extract product labels from the processed data
+  cat("Creating product labels from:", unique(processed_data$Product), "\n")
+  prod_labels <- strsplit(as.character(unique(processed_data$Product)[1]), split = "-", fixed = TRUE) [[1]]
   
-  return(list(tidy_data = data, prod_labels = prod_labels))
+  return(list(tidy_data = processed_data, prod_labels = prod_labels))
 }
 
 #' Tidy tetrad test data  
 #' @export
 tidy_tetrad <- function(file_path) {
-  data <- import_list(file_path, rbind = TRUE) %>%
-    clean_names() %>%
-    select(assessor, product, tetrad) %>%
-    group_by(assessor, product) %>%
+  data <- read_excel_allsheets(file_path) %>%
+    clean_names_simple()
+  
+  # Debug: show what columns actually exist (remove this later)
+  cat("Available columns:", paste(names(data), collapse = ", "), "\n")
+  
+  # Try to auto-detect column names
+  cols <- names(data)
+  assessor_col <- cols[grepl("assessor|panelist|judge|participant", cols, ignore.case = TRUE)]
+  product_col <- cols[grepl("product|sample|treatment", cols, ignore.case = TRUE)]
+  tetrad_col <- cols[grepl("tetrad|correct|response|answer|difference", cols, ignore.case = TRUE)]
+  
+  # Use detected columns or fall back to positional
+  if (length(assessor_col) == 0) assessor_col <- cols[1]
+  if (length(product_col) == 0) product_col <- cols[2]
+  if (length(tetrad_col) == 0) tetrad_col <- cols[3]
+  
+  # Take only the first detected column for each type
+  assessor_final <- assessor_col[1]
+  product_final <- product_col[1] 
+  tetrad_final <- tetrad_col[1]
+  
+  cat("Using columns:", assessor_final, "->", product_final, "->", tetrad_final, "\n")
+  
+  processed_data <- data %>%
+    select(Panelist = all_of(assessor_final), 
+           Product = all_of(product_final), 
+           tetrad = all_of(tetrad_final)) %>%
+    group_by(Panelist, Product) %>%
     summarize(Correct = sum(tetrad), Total = n(), .groups = "drop") %>%
     ungroup() %>%
-    rename(Panelist = assessor, Product = product) %>%
     mutate(Panelist = factor(Panelist))
   
-  prod_labels <- strsplit(unique(data$Product), split = "-", fixed = TRUE) [[1]]
+  # Extract product labels from the processed data
+  cat("Creating product labels from:", unique(processed_data$Product), "\n")
+  prod_labels <- strsplit(as.character(unique(processed_data$Product)[1]), split = "-", fixed = TRUE) [[1]]
   
-  return(list(tidy_data = data, prod_labels = prod_labels))
+  return(list(tidy_data = processed_data, prod_labels = prod_labels))
 }
 
 #' Tidy 2-AFCR test data
 #' @export  
 tidy_two_afcr <- function(file_path) {
-  data <- import_list(file_path, rbind = TRUE) %>%
-    clean_names() %>%
+  data <- read_excel_allsheets(file_path) %>%
+    clean_names_simple() %>%
     select(assessor, product, same) %>%
     group_by(assessor, product) %>%
     summarize(Correct = sum(same), Total = n(), .groups = "drop") %>%
@@ -54,7 +132,7 @@ tidy_two_afcr <- function(file_path) {
     rename(Panelist = assessor, Product = product) %>%
     mutate(Panelist = factor(Panelist))
   
-  prod_labels <- strsplit(unique(data$Product), split = "-", fixed = TRUE) [[1]]
+  prod_labels <- strsplit(as.character(unique(data$Product)[1]), split = "-", fixed = TRUE) [[1]]
   
   return(list(tidy_data = data, prod_labels = prod_labels))
 }
@@ -62,8 +140,8 @@ tidy_two_afcr <- function(file_path) {
 #' Load 2-AFC test data (first step)
 #' @export
 tidy_two_afc_load_data <- function(file_path) {
-  raw_data <- import_list(file_path, rbind = TRUE) %>%
-    clean_names()
+  raw_data <- read_excel_allsheets(file_path) %>%
+    clean_names_simple()
   
   data <- raw_data %>%
     select(assessor, product, comparison) %>%
@@ -113,8 +191,8 @@ tidy_two_afc_process_data <- function(poss_corr_prods, corr_prod, data) {
 #' Tidy DFC (Difference from Control) data
 #' @export  
 tidy_dfc_load_data <- function(file_path) {
-  data <- import_list(file_path, rbind = TRUE) %>%
-    clean_names()
+  data <- read_excel_allsheets(file_path) %>%
+    clean_names_simple()
   
   # Get control names (samples that appear most frequently)
   control_candidates <- data %>%
@@ -155,8 +233,8 @@ tidy_dfc_process_data <- function(control, control_names, dfc_var, data) {
 #' Tidy RaR (Ranking against Reference) data  
 #' @export
 tidy_rar <- function(file_path) {
-  data <- import_list(file_path, rbind = TRUE) %>%
-    clean_names()
+  data <- read_excel_allsheets(file_path) %>%
+    clean_names_simple()
   
   # Get control names
   control_names <- data %>%

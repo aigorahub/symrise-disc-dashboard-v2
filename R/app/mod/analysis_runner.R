@@ -123,43 +123,53 @@ server <- function(id, design_params, imported_data) {
       # For one-sided test: CI = 1 - alpha
       confidence_level <- 1 - (2 * input$alpha_level)
       
-      tryCatch({
+      # Fix is_double if it's NULL or empty
+      if (is.null(is_double) || length(is_double) == 0) {
+        is_double <- FALSE
+      }
+      
+      results <- tryCatch({
         if (test_type == "sod") {
           # Size of Difference analysis
-          results <- discrimination_analysis$perform_sod_analysis(
+          analysis_result <- discrimination_analysis$perform_sod_analysis(
             data = data_info,
             control_name = data_info$control_name,
             alpha_level = input$alpha_level,
             delta_threshold = input$delta_threshold
           )
-          results$timestamp <- Sys.time()
+          analysis_result$timestamp <- Sys.time()
+          analysis_result
           
         } else if (is_double) {
           # Double tetrad analysis
-          results <- discrimination_analysis$perform_double_tetrad_analysis(
+          analysis_result <- discrimination_analysis$perform_double_tetrad_analysis(
             data = data_info,
             test_objective = test_objective,
             alpha_level = input$alpha_level,
             delta_threshold = input$delta_threshold
           )
-          results$timestamp <- Sys.time()
+          analysis_result$timestamp <- Sys.time()
+          analysis_result
           
         } else {
           # Single discrimination test analysis
-          results <- discrimination_analysis$perform_discrimination_test(
+          analysis_result <- discrimination_analysis$perform_discrimination_test(
             data = data_info,
             test_type = test_type,
             test_objective = test_objective,
             alpha_level = input$alpha_level,
             delta_threshold = input$delta_threshold
           )
-          results$timestamp <- Sys.time()
+          analysis_result$timestamp <- Sys.time()
+          analysis_result
         }
         
       }, error = function(e) {
+        cat("Analysis error:", e$message, "\n")
+        
         showNotification(
           paste("Analysis error:", e$message),
-          type = "error",
+          type = "warning",
           duration = 10
         )
         
@@ -173,7 +183,9 @@ server <- function(id, design_params, imported_data) {
         )
       })
       
-      showNotification("Analysis complete!", type = "success")
+      if (!is.null(results) && !isTRUE(results$error)) {
+        showNotification("Analysis complete!", type = "message")
+      }
       
       results
     })
