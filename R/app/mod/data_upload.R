@@ -5,8 +5,23 @@ box::use(
   shiny[..., updateSelectInput],
   bs4Dash[...],
   readxl[read_excel],
-  ../../proc/data_processing
+  ../../proc/data_processing,
+  ../../proc/data_import_functions
 )
+
+# Add custom showToast function for compatibility with old code
+showToast <- function(title, description = "", type = "default") {
+  # Convert old toast types to Shiny notification types
+  shiny_type <- switch(type,
+    "success" = "message",
+    "error" = "warning", 
+    "warning" = "warning",
+    "default"
+  )
+  
+  message_text <- if (description == "") title else paste(title, description, sep = " ")
+  showNotification(message_text, type = shiny_type, duration = 5)
+}
 
 #' Data upload UI
 #' @export
@@ -104,31 +119,52 @@ server <- function(id) {
       tryCatch({
         # Get file extension
         file_ext <- tolower(tools::file_ext(input$file$name))
+        file_path <- input$file$datapath
         
-        # Read file based on extension
-        data <- NULL
-        if (file_ext %in% c("xlsx", "xls")) {
-          data <- read_excel(input$file$datapath)
-        } else if (file_ext == "csv") {
-          data <- read.csv(input$file$datapath, stringsAsFactors = FALSE)
-        } else {
-          stop("Please upload an Excel (.xlsx, .xls) or CSV (.csv) file")
-        }
-        
-        # Basic validation
-        if (is.null(data) || nrow(data) == 0) {
-          showNotification("Uploaded file is empty", type = "error", duration = 5)
+        # Validate file extension
+        if (!file_ext %in% c("xlsx", "xls", "csv")) {
+          showToast("File Extension:", "The file extension is incorrect", "error")
           return(NULL)
         }
         
-        showNotification("File uploaded successfully", type = "success", duration = 3)
-        
-        # Process the data based on test type
-        processed_data <- data_processing$process_uploaded_data(
-          data = data,
-          test_type = input$test_type,
-          test_objective = input$test_objective
+        # Process data based on test type using the appropriate function
+        processed_data <- switch(input$test_type,
+          "triangle" = data_import_functions$tidy_triangle(file_path),
+          "tetrad" = data_import_functions$tidy_tetrad(file_path),
+          "two_afc" = data_import_functions$tidy_two_afc_load_data(file_path),
+          "duo_trio" = data_import_functions$tidy_triangle(file_path),  # Similar to triangle
+          "sod" = {
+            # For SoD, read the raw data first
+            if (file_ext %in% c("xlsx", "xls")) {
+              raw_data <- read_excel(file_path)
+            } else {
+              raw_data <- read.csv(file_path, stringsAsFactors = FALSE)
+            }
+            # Return raw data for SoD - will be processed later when control is selected
+            list(tidy_data = raw_data, test_type = "sod")
+          },
+          {
+            # Default: try to read as simple discrimination data
+            if (file_ext %in% c("xlsx", "xls")) {
+              data <- read_excel(file_path)
+            } else {
+              data <- read.csv(file_path, stringsAsFactors = FALSE)
+            }
+            list(tidy_data = data)
+          }
         )
+        
+        if (is.null(processed_data) || is.null(processed_data$tidy_data) || nrow(processed_data$tidy_data) == 0) {
+          showToast("Data Error:", "Uploaded file is empty or has no valid data", "error")
+          return(NULL)
+        }
+        
+        showToast("Congrats:", "File loaded Successfully.", "success")
+        
+        # Add metadata
+        processed_data$test_type <- input$test_type
+        processed_data$test_objective <- input$test_objective
+        processed_data
         
         # Update control product choices for SoD
         if (input$test_type == "sod" && !is.null(processed_data)) {
@@ -148,7 +184,7 @@ server <- function(id) {
         
       }, error = function(e) {
         error_msg <- paste("Error reading file:", e$message)
-        showNotification(error_msg, type = "error", duration = 10)
+        showNotification(error_msg, type = "warning", duration = 10)
         cat("Upload error:", error_msg, "\n")
         NULL
       })

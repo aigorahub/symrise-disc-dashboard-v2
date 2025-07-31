@@ -109,11 +109,12 @@ server <- function(id, params) {
           result <- tryCatch({
             # Try d.primeSS if available
             if (exists("d.primeSS", where = asNamespace("sensR"))) {
+              # Use dropdown value directly, and set d.primeA based on test objective
               sensR::d.primeSS(
-                d.primeA = p$effect_size,
+                d.primeA = if (p$test_objective == "similarity") 0 else p$effect_size,
                 target.power = p$power,
                 alpha = p$alpha,
-                test = "difference",  # Always use "difference" for power calculations
+                test = p$test_objective,  # Use dropdown value directly
                 method = method_name
               )
             } else {
@@ -127,11 +128,14 @@ server <- function(id, params) {
             
             # First check if we need a larger range
             if (exists("d.primePwr", where = asNamespace("sensR"))) {
+              # Use dropdown value directly and inline d.primeA calculation
+              d_prime_param <- if (p$test_objective == "similarity") 0 else p$effect_size
+              
               max_power <- sensR::d.primePwr(
-                d.primeA = p$effect_size,
+                d.primeA = d_prime_param,
                 sample.size = n_max,
                 alpha = p$alpha,
-                test = "difference",
+                test = p$test_objective,  # Use dropdown value directly
                 method = method_name
               )
               
@@ -139,10 +143,10 @@ server <- function(id, params) {
               while (max_power < p$power && n_max < 1000) {
                 n_max <- min(n_max * 2, 1000)
                 max_power <- sensR::d.primePwr(
-                  d.primeA = p$effect_size,
+                  d.primeA = d_prime_param,
                   sample.size = n_max,
                   alpha = p$alpha,
-                  test = "difference",
+                  test = p$test_objective,
                   method = method_name
                 )
               }
@@ -152,10 +156,10 @@ server <- function(id, params) {
                 n_mid <- floor((n_min + n_max) / 2)
                 
                 current_power <- sensR::d.primePwr(
-                  d.primeA = p$effect_size,
+                  d.primeA = d_prime_param,
                   sample.size = n_mid,
                   alpha = p$alpha,
-                  test = "difference",
+                  test = p$test_objective,
                   method = method_name
                 )
                 
