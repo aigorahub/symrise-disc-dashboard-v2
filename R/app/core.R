@@ -45,25 +45,6 @@ ui <- function() {
       title = tagList(
         config$get_logo(),
         span(config$get_app_name(), style = "font-size: 16px;")
-      ),
-      controlbarIcon = icon("sun"),
-      rightUi = tagList(
-        dropdownMenu(
-          type = "tasks",
-          icon = icon("moon"),
-          badgeStatus = NULL,
-          headerText = "Dark Mode",
-          .list = list(
-            tags$li(
-              tags$a(
-                href = "#",
-                onclick = "document.body.classList.toggle('dark-mode'); return false;",
-                tags$i(class = "fas fa-adjust"),
-                "Toggle Dark Mode"
-              )
-            )
-          )
-        )
       )
     ),
     sidebar = dashboardSidebar(
@@ -81,6 +62,18 @@ ui <- function() {
     body = dashboardBody(
       # Include shinyjs
       shinyjs::useShinyjs(),
+      
+      # Dark mode toggle button (fixed position)
+      tags$div(
+        style = "position: fixed; top: 10px; right: 15px; z-index: 9999;",
+        tags$a(
+          href = "#",
+          onclick = "document.body.classList.toggle('dark-mode'); return false;",
+          style = "padding: 8px; color: #666; text-decoration: none; background: rgba(255,255,255,0.9); border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);",
+          tags$i(class = "fas fa-adjust", style = "font-size: 16px;"),
+          title = "Toggle Dark Mode"
+        )
+      ),
       
       # Include custom CSS and JS
       tags$head(

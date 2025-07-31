@@ -258,7 +258,7 @@ server <- function(id, params) {
       tagList(
         h4("Required Sample Size"),
         tags$div(
-          class = "alert alert-primary",
+          class = "alert alert-info",
           tags$h3(s$n, " participants"),
           tags$p(
             "Based on:",
