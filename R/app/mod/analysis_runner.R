@@ -3,7 +3,8 @@
 box::use(
   shiny[..., icon, updateNumericInput],
   bs4Dash[...],
-  sensR
+  sensR,
+  ../../proc/discrimination_analysis
 )
 
 #' Analysis runner UI
@@ -118,60 +119,55 @@ server <- function(id, design_params, imported_data) {
       # For one-sided test: CI = 1 - alpha
       confidence_level <- 1 - (2 * input$alpha_level)
       
-      if (is_double) {
-        # Analyze both datasets for double tetrad
-        data1 <- data_info$data_sets$test1
-        data2 <- data_info$data_sets$test2
-        
-        # Placeholder analysis for both tests
-        Sys.sleep(1.5) # Simulate longer processing for double
-        
-        results <- list(
-          is_double = TRUE,
-          test_type = "tetrad",
-          original_type = "double_tetrad",
-          test_objective = test_objective,
-          test1_results = list(
-            n_total = nrow(data1),
-            d_prime = 1.23,
-            p_value = 0.034,
-            confidence_interval = c(0.89, 1.57),
-            confidence_level = confidence_level,
-            alpha = input$alpha_level,
+      tryCatch({
+        if (test_type == "sod") {
+          # Size of Difference analysis
+          results <- discrimination_analysis$perform_sod_analysis(
+            data = data_info,
+            control_name = data_info$control_name,
+            alpha_level = input$alpha_level,
             delta_threshold = input$delta_threshold
-          ),
-          test2_results = list(
-            n_total = nrow(data2),
-            d_prime = 0.98,
-            p_value = 0.067,
-            confidence_interval = c(0.65, 1.31),
-            confidence_level = confidence_level,
-            alpha = input$alpha_level,
+          )
+          results$timestamp <- Sys.time()
+          
+        } else if (is_double) {
+          # Double tetrad analysis
+          results <- discrimination_analysis$perform_double_tetrad_analysis(
+            data = data_info,
+            test_objective = test_objective,
+            alpha_level = input$alpha_level,
             delta_threshold = input$delta_threshold
-          ),
-          timestamp = Sys.time()
+          )
+          results$timestamp <- Sys.time()
+          
+        } else {
+          # Single discrimination test analysis
+          results <- discrimination_analysis$perform_discrimination_test(
+            data = data_info,
+            test_type = test_type,
+            test_objective = test_objective,
+            alpha_level = input$alpha_level,
+            delta_threshold = input$delta_threshold
+          )
+          results$timestamp <- Sys.time()
+        }
+        
+      }, error = function(e) {
+        showNotification(
+          paste("Analysis error:", e$message),
+          type = "error",
+          duration = 10
         )
-      } else {
-        # Single test analysis
-        data <- data_info$data_sets[[1]]
         
-        # Placeholder analysis - replace with actual sensR analysis
-        Sys.sleep(1) # Simulate processing
-        
-        results <- list(
-          is_double = FALSE,
-          n_total = nrow(data),
+        # Return error result
+        list(
+          error = TRUE,
+          error_message = e$message,
           test_type = test_type,
           test_objective = test_objective,
-          d_prime = 1.23,
-          p_value = 0.034,
-          confidence_interval = c(0.89, 1.57),
-          confidence_level = confidence_level,
-          alpha = input$alpha_level,
-          delta_threshold = input$delta_threshold,
           timestamp = Sys.time()
         )
-      }
+      })
       
       showNotification("Analysis complete!", type = "success")
       

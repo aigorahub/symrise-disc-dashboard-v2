@@ -3,7 +3,8 @@
 box::use(
   shiny[..., icon],
   bs4Dash[...],
-  sensR
+  sensR,
+  ../../util/sensr_helpers
 )
 
 #' Sample size UI
@@ -87,51 +88,36 @@ server <- function(id, params) {
             alpha = p$alpha
           )
           
-        } else if (p$test_type == "triangle") {
-          # Triangle test calculations
-          result <- sensR::d.primeSS(
-            d.primeA = p$effect_size,
-            target.power = p$power,
-            alpha = p$alpha,
-            test = p$test_objective,  # "similarity" or "difference"
-            method = "triangle"
+        } else if (p$test_type %in% c("triangle", "tetrad", "duo_trio", "two_afc")) {
+          # Standard discrimination test calculations
+          method_name <- switch(p$test_type,
+            "triangle" = "triangle",
+            "tetrad" = "tetrad",
+            "duo_trio" = "duotrio",
+            "two_afc" = "twoAFC"
           )
-          n <- ceiling(result)
-          actual_power <- p$power
           
-        } else if (p$test_type == "tetrad") {
-          # Tetrad test calculations
-          result <- sensR::d.primeSS(
-            d.primeA = p$effect_size,
-            target.power = p$power,
-            alpha = p$alpha,
-            test = p$test_objective,  # "similarity" or "difference"
-            method = "tetrad"
-          )
-          n <- ceiling(result)
-          actual_power <- p$power
+          # Try direct sensR call first (matching old dashboard exactly)
+          # IMPORTANT: Old dashboard always uses test = "difference" for sample size calculation
+          result <- tryCatch({
+            sensR::d.primeSS(
+              d.primeA = p$effect_size,
+              target.power = p$power,
+              alpha = p$alpha,
+              test = "difference",  # Always use "difference" as per old dashboard
+              method = method_name
+            )
+          }, error = function(e) {
+            # If direct call fails, use helper function
+            sensr_helpers$calculate_sample_size(
+              d_prime = p$effect_size,
+              power = p$power,
+              alpha = p$alpha,
+              test_obj = "difference",  # Always use "difference" as per old dashboard
+              method = method_name
+            )
+          })
           
-        } else if (p$test_type == "duo_trio") {
-          # Duo-trio test calculations
-          result <- sensR::d.primeSS(
-            d.primeA = p$effect_size,
-            target.power = p$power,
-            alpha = p$alpha,
-            test = p$test_objective,  # "similarity" or "difference"
-            method = "duotrio"
-          )
-          n <- ceiling(result)
-          actual_power <- p$power
-          
-        } else if (p$test_type == "two_afc") {
-          # 2-AFC test calculations
-          result <- sensR::d.primeSS(
-            d.primeA = p$effect_size,
-            target.power = p$power,
-            alpha = p$alpha,
-            test = p$test_objective,  # "similarity" or "difference"
-            method = "twoAFC"
-          )
           n <- ceiling(result)
           actual_power <- p$power
           

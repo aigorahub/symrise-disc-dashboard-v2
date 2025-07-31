@@ -149,3 +149,50 @@ input[type="checkbox"] {
 .dark-mode .btn-primary {
   box-shadow: 0 2px 4px rgba(197, 23, 24, 0.3);
 }
+
+/* Info box styling */
+.info-box {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.info-box p {
+  margin-bottom: 10px;
+}
+
+.info-box p:last-child {
+  margin-bottom: 0;
+}
+
+/* Table styling */
+.table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table thead th {
+  background-color: var(--symrise-red);
+  color: white;
+  border: none;
+  padding: 12px;
+}
+
+.table tbody td {
+  padding: 10px;
+  vertical-align: middle;
+}
+
+/* Dark mode info box */
+.dark-mode .info-box {
+  background-color: var(--symrise-dark-sidebar);
+  border-color: #444;
+  color: var(--symrise-dark-text);
+}
+
+.dark-mode .table thead th {
+  background-color: #444;
+  color: var(--symrise-dark-text);
+}
