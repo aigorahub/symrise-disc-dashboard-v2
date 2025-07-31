@@ -1,9 +1,11 @@
 # Helper functions for sensR compatibility
 # Handles different versions of sensR package
 
-box::use(
-  sensR
-)
+# Ensure sensR functions are available in this module environment  
+# Note: box modules have isolated environments, so we need to explicitly load sensR here
+if (!exists("d.primePwr")) {
+  library(sensR)
+}
 
 #' Calculate sample size for discrimination tests
 #' Wrapper function that handles different sensR versions
@@ -16,7 +18,7 @@ calculate_sample_size <- function(d_prime, power, alpha, test_obj, method) {
         d.primeA = d_prime,
         target.power = power,
         alpha = alpha,
-        test = "difference",  # Always use "difference" as per old dashboard
+        test = "difference",  # Always use "difference" for power calculations
         method = method
       )
       return(ceiling(result))
@@ -28,7 +30,7 @@ calculate_sample_size <- function(d_prime, power, alpha, test_obj, method) {
   
   # If d.primeSS doesn't exist or fails, use binary search with power functions
   n_min <- 5
-  n_max <- 1000
+  n_max <- 500  # Reduced from 1000 to avoid extreme values
   
   # Try to find which power function is available
   power_func <- NULL
@@ -39,42 +41,23 @@ calculate_sample_size <- function(d_prime, power, alpha, test_obj, method) {
         d.primeA = d_prime,
         sample.size = n,
         alpha = alpha,
-        test = "difference",  # Always use "difference" as per old dashboard
+        test = "difference",  # Always use "difference" for power calculations
         method = method
       )
-    }
-  } else if (exists("discrimPwr", where = asNamespace("sensR"))) {
-    power_func <- function(n) {
-      tryCatch({
-        sensR::discrimPwr(
-          pd = sensR::coef(sensR::psyfun(d_prime, method = method))$pd,
-          sample.size = n,
-          alpha = alpha,
-          method = method
-        )
-      }, error = function(e) {
-        # Alternative call signature
-        sensR::discrimPwr(
-          d.primeA = d_prime,
-          sample.size = n,
-          alpha = alpha,
-          method = method
-        )
-      })
     }
   } else {
     # Fallback: Use basic approximation based on method
     pc_guess <- switch(method,
-      "triangle" = 1/3 + (2/3) * pnorm(d_prime/sqrt(2)),
-      "tetrad" = 1/4 + (3/4) * pnorm(d_prime/sqrt(2)),
-      "twoAFC" = pnorm(d_prime/sqrt(2)),
-      "duotrio" = 1/2 + (1/2) * pnorm(d_prime/sqrt(2)),
+      "triangle" = 1/3 + (2/3) * stats::pnorm(d_prime/sqrt(2)),
+      "tetrad" = 1/4 + (3/4) * stats::pnorm(d_prime/sqrt(2)),
+      "twoAFC" = stats::pnorm(d_prime/sqrt(2)),
+      "duotrio" = 1/2 + (1/2) * stats::pnorm(d_prime/sqrt(2)),
       0.75  # default
     )
     
     # Use normal approximation for sample size
-    z_alpha <- qnorm(1 - alpha)
-    z_beta <- qnorm(power)
+    z_alpha <- stats::qnorm(1 - alpha)
+    z_beta <- stats::qnorm(power)
     p0 <- switch(method, "triangle" = 1/3, "tetrad" = 1/4, "twoAFC" = 0.5, "duotrio" = 0.5, 1/3)
     
     n <- ((z_alpha * sqrt(p0 * (1 - p0)) + z_beta * sqrt(pc_guess * (1 - pc_guess)))^2) / 
@@ -85,6 +68,24 @@ calculate_sample_size <- function(d_prime, power, alpha, test_obj, method) {
   
   # Binary search for exact sample size
   if (!is.null(power_func)) {
+    # First check if we need a larger range
+    max_power <- tryCatch({
+      power_func(n_max)
+    }, error = function(e) {
+      0.5
+    })
+    
+    # If max power is still less than target, increase range
+    while (max_power < power && n_max < 1000) {
+      n_max <- min(n_max * 2, 1000)
+      max_power <- tryCatch({
+        power_func(n_max)
+      }, error = function(e) {
+        0.5
+      })
+    }
+    
+    # Binary search
     while (n_max - n_min > 1) {
       n_mid <- floor((n_min + n_max) / 2)
       
@@ -111,11 +112,11 @@ calculate_sample_size <- function(d_prime, power, alpha, test_obj, method) {
 #' List available sensR functions
 #' @export
 list_sensr_functions <- function() {
-  funs <- ls("package:sensR")
+  # Avoid ls() during module loading - use static list instead
   list(
-    sample_size_functions = funs[grep("SS|sample", funs, ignore.case = TRUE)],
-    power_functions = funs[grep("pwr|power", funs, ignore.case = TRUE)],
-    discrimination_functions = funs[grep("discrim", funs, ignore.case = TRUE)],
-    all_functions = sort(funs)
+    sample_size_functions = c("d.primeSS", "discrimSS"),
+    power_functions = c("d.primePwr", "discrimPwr", "dodPwr", "samediffPwr", "twoACpwr"),
+    discrimination_functions = c("discrim", "discrimPwr", "discrimR", "discrimSim", "discrimSS"),
+    all_functions = c("d.primeSS", "d.primePwr", "discrim", "discrimPwr", "dodPwr")
   )
 }

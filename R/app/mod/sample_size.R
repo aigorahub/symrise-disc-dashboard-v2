@@ -3,9 +3,17 @@
 box::use(
   shiny[..., icon],
   bs4Dash[...],
-  sensR,
   ../../util/sensr_helpers
 )
+
+# Import ALL sensR functions into this environment to fix box module namespace issues
+library(sensR)
+# Explicitly assign key functions to local environment so they're found by internal calls
+d.primeSS <- sensR::d.primeSS
+d.primePwr <- sensR::d.primePwr  
+discrimSS <- sensR::discrimSS
+discrimPwr <- sensR::discrimPwr
+dodPwr <- sensR::dodPwr
 
 #' Sample size UI
 #' @export
@@ -58,7 +66,7 @@ server <- function(id, params) {
         if (p$test_type == "sod") {
           # Size of Difference calculations using dod_power
           # For SoD, we need to calculate sample size from power
-          # dod_power function: dod.power(d.prime, n, alpha)
+          # dodPwr function: dodPwr(d.primeA, sample.size, alpha)
           # We need to find n that gives us the desired power
           
           # Binary search for sample size
@@ -68,11 +76,11 @@ server <- function(id, params) {
           
           while (n_max - n_min > 1) {
             n_mid <- floor((n_min + n_max) / 2)
-            current_power <- sensR::dod.power(
-              d.prime = p$effect_size,
-              n = n_mid,
+            current_power <- sensR::dodPwr(
+              d.primeA = p$effect_size,
+              sample.size = n_mid,
               alpha = p$alpha
-            )
+            )[[1]]
             
             if (current_power < target_power) {
               n_min <- n_mid
@@ -82,11 +90,11 @@ server <- function(id, params) {
           }
           
           n <- n_max
-          actual_power <- sensR::dod.power(
-            d.prime = p$effect_size,
-            n = n,
+          actual_power <- sensR::dodPwr(
+            d.primeA = p$effect_size,
+            sample.size = n,
             alpha = p$alpha
-          )
+          )[[1]]
           
         } else if (p$test_type %in% c("triangle", "tetrad", "duo_trio", "two_afc")) {
           # Standard discrimination test calculations
@@ -97,25 +105,72 @@ server <- function(id, params) {
             "two_afc" = "twoAFC"
           )
           
-          # Try direct sensR call first (matching old dashboard exactly)
-          # IMPORTANT: Old dashboard always uses test = "difference" for sample size calculation
+          # Calculate sample size - matching old dashboard behavior
           result <- tryCatch({
-            sensR::d.primeSS(
-              d.primeA = p$effect_size,
-              target.power = p$power,
-              alpha = p$alpha,
-              test = "difference",  # Always use "difference" as per old dashboard
-              method = method_name
-            )
+            # Try d.primeSS if available
+            if (exists("d.primeSS", where = asNamespace("sensR"))) {
+              sensR::d.primeSS(
+                d.primeA = p$effect_size,
+                target.power = p$power,
+                alpha = p$alpha,
+                test = "difference",  # Always use "difference" for power calculations
+                method = method_name
+              )
+            } else {
+              # Fallback to binary search
+              stop("d.primeSS not available")
+            }
           }, error = function(e) {
-            # If direct call fails, use helper function
-            sensr_helpers$calculate_sample_size(
-              d_prime = p$effect_size,
-              power = p$power,
-              alpha = p$alpha,
-              test_obj = "difference",  # Always use "difference" as per old dashboard
-              method = method_name
-            )
+            # Use binary search with d.primePwr
+            n_min <- 5
+            n_max <- 200  # Start with reasonable max
+            
+            # First check if we need a larger range
+            if (exists("d.primePwr", where = asNamespace("sensR"))) {
+              max_power <- sensR::d.primePwr(
+                d.primeA = p$effect_size,
+                sample.size = n_max,
+                alpha = p$alpha,
+                test = "difference",
+                method = method_name
+              )
+              
+              # If max power is still less than target, increase range
+              while (max_power < p$power && n_max < 1000) {
+                n_max <- min(n_max * 2, 1000)
+                max_power <- sensR::d.primePwr(
+                  d.primeA = p$effect_size,
+                  sample.size = n_max,
+                  alpha = p$alpha,
+                  test = "difference",
+                  method = method_name
+                )
+              }
+              
+              # Binary search
+              while (n_max - n_min > 1) {
+                n_mid <- floor((n_min + n_max) / 2)
+                
+                current_power <- sensR::d.primePwr(
+                  d.primeA = p$effect_size,
+                  sample.size = n_mid,
+                  alpha = p$alpha,
+                  test = "difference",
+                  method = method_name
+                )
+                
+                if (current_power < p$power) {
+                  n_min <- n_mid
+                } else {
+                  n_max <- n_mid
+                }
+              }
+              
+              n_max
+            } else {
+              # Last resort: force error rather than call potentially problematic helper
+              stop("Both d.primeSS and d.primePwr failed - sensR functions not working properly")
+            }
           })
           
           n <- ceiling(result)

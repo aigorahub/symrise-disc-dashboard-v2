@@ -3,9 +3,13 @@
 box::use(
   shiny[..., icon, updateNumericInput],
   bs4Dash[...],
-  sensR,
   ../../proc/discrimination_analysis
 )
+
+# Ensure sensR is available
+if (!requireNamespace("sensR", quietly = TRUE)) {
+  stop("sensR package is required but not installed")
+}
 
 #' Analysis runner UI
 #' @export

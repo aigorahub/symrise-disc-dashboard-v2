@@ -2,7 +2,7 @@
 # Implements the actual statistical analysis using sensR
 
 box::use(
-  sensR[discrim, betabin, dod, d.primePwr],
+  sensR,
   stats[pnorm, qnorm]
 )
 
@@ -47,7 +47,7 @@ perform_discrimination_test <- function(data, test_type, test_objective, alpha_l
     )
     
     tryCatch({
-      bb_res <- betabin(data = bb_data, method = method_name)
+      bb_res <- sensR::betabin(data = bb_data, method = method_name)
       bb_summary <- summary(bb_res)
       overdispersion_p <- bb_summary$p.value.OD
       overdispersion_detected <- overdispersion_p < 0.05
@@ -59,7 +59,7 @@ perform_discrimination_test <- function(data, test_type, test_objective, alpha_l
   
   # Perform main discrimination analysis
   # Using confidence level 0.90 for two-tailed test (as in old dashboard)
-  discrim_res <- discrim(
+  discrim_res <- sensR::discrim(
     correct = num_correct,
     total = num_total,
     method = method_name,
@@ -80,7 +80,7 @@ perform_discrimination_test <- function(data, test_type, test_objective, alpha_l
   
   # Calculate power
   power <- tryCatch({
-    d.primePwr(
+    sensR::d.primePwr(
       d.primeA = delta_threshold,
       sample.size = num_total,
       alpha = alpha_level,

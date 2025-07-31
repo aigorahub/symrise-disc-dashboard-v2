@@ -44,7 +44,7 @@ if (length(discrim_functions) > 0) {
 # Test if key functions exist
 cat("\n\nChecking key functions:\n")
 key_functions <- c("d.primeSS", "discrimSS", "discrimPwr", "d.primePwr", 
-                   "discrim", "dod.power", "dodPwr")
+                   "discrim", "dod.power", "dodPwr", "dprimeSS", "dprime.SS")
 
 for (fn in key_functions) {
   exists_status <- exists(fn, where = asNamespace("sensR"))
@@ -58,7 +58,7 @@ cat("\n\nTesting available functions:\n")
 if (exists("discrimPwr", where = asNamespace("sensR"))) {
   cat("\n1. Testing discrimPwr:\n")
   tryCatch({
-    result <- discrimPwr(d.primeA = 1.0, sample.size = 50, alpha = 0.05, method = "triangle")
+    result <- d.primePwr(d.primeA = 1.0, sample.size = 50, alpha = 0.05, test = "difference", method = "triangle")
     cat("   Success! Power =", result, "\n")
   }, error = function(e) {
     cat("   Error:", e$message, "\n")
