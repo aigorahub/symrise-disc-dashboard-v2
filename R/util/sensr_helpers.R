@@ -14,13 +14,25 @@ calculate_sample_size <- function(d_prime, power, alpha, test_obj, method) {
   # First try d.primeSS - this is what the old dashboard uses
   if (exists("d.primeSS", where = asNamespace("sensR"))) {
     tryCatch({
-      result <- sensR::d.primeSS(
-        d.primeA = d_prime,
-        target.power = power,
-        alpha = alpha,
-        test = "difference",  # Always use "difference" for power calculations
-        method = method
-      )
+      # Different parameters for similarity vs difference tests
+      if (test_obj == "similarity") {
+        result <- sensR::d.primeSS(
+          d.primeA = 0,
+          d.prime0 = d_prime,
+          target.power = power,
+          alpha = alpha,
+          test = "similarity",
+          method = method
+        )
+      } else {
+        result <- sensR::d.primeSS(
+          d.primeA = d_prime,
+          target.power = power,
+          alpha = alpha,
+          test = "difference",
+          method = method
+        )
+      }
       return(ceiling(result))
     }, error = function(e) {
       # If d.primeSS fails, fall through to other methods
@@ -37,13 +49,25 @@ calculate_sample_size <- function(d_prime, power, alpha, test_obj, method) {
   
   if (exists("d.primePwr", where = asNamespace("sensR"))) {
     power_func <- function(n) {
-      sensR::d.primePwr(
-        d.primeA = d_prime,
-        sample.size = n,
-        alpha = alpha,
-        test = "difference",  # Always use "difference" for power calculations
-        method = method
-      )
+      # Different parameters for similarity vs difference tests
+      if (test_obj == "similarity") {
+        sensR::d.primePwr(
+          d.primeA = 0,
+          d.prime0 = d_prime,
+          sample.size = n,
+          alpha = alpha,
+          test = "similarity",
+          method = method
+        )
+      } else {
+        sensR::d.primePwr(
+          d.primeA = d_prime,
+          sample.size = n,
+          alpha = alpha,
+          test = "difference",
+          method = method
+        )
+      }
     }
   } else {
     # Fallback: Use basic approximation based on method

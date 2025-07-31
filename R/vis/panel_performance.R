@@ -3,8 +3,10 @@
 
 box::use(
   ggplot2[...],
-  dplyr[...],
-  tidyr[pivot_longer]
+  dplyr[..., `%>%`],
+  tidyr[pivot_longer],
+  stats[reorder],
+  scales[percent]
 )
 
 # Helper function for factor reversal
@@ -143,7 +145,7 @@ create_correct_answers_summary <- function(data, test_type) {
   )
   
   # Create bar plot
-  p <- ggplot(panelist_summary, aes(x = reorder(Panelist, Proportion), y = Proportion, fill = Performance)) +
+  p <- ggplot(panelist_summary, aes(x = stats::reorder(Panelist, Proportion), y = Proportion, fill = Performance)) +
     geom_bar(stat = "identity") +
     scale_fill_manual(values = colors) +
     scale_y_continuous(labels = scales::percent, limits = c(0, 1)) +
